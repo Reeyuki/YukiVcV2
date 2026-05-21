@@ -221,36 +221,72 @@ Promise.all([
     const originalFetch = window.fetch;
     window.fetch = async function(input, init) {
         let urlString = input instanceof Request ? input.url : String(input);
+        let rewrittenUrl = urlString;
 
-        if (urlString.toLowerCase().includes("index.data".toLowerCase())) input = indexdataurl;
-        else if (urlString.toLowerCase().includes("emotion.adf".toLowerCase())) input = EMOTIONadfurl;
-        else if (urlString.toLowerCase().includes("espant.adf".toLowerCase())) input = ESPANTadfurl;
-        else if (urlString.toLowerCase().includes("fever.adf".toLowerCase())) input = FEVERadfurl;
-        else if (urlString.toLowerCase().includes("flash.adf".toLowerCase())) input = FLASHadfurl;
-        else if (urlString.toLowerCase().includes("kchat.adf".toLowerCase())) input = KCHATadfurl;
-        else if (urlString.toLowerCase().includes("VCPR.adf".toLowerCase())) input = VCPRadfurl;
-        else if (urlString.toLowerCase().includes("VROCK.adf".toLowerCase())) input = VROCKadfurl;
-        else if (urlString.toLowerCase().includes("WAVE.adf".toLowerCase())) input = WAVEadfurl;
-        else if (urlString.toLowerCase().includes("WILD.adf".toLowerCase())) input = WILDadfurl;
+        if (urlString.startsWith('/assets/')) {
+            rewrittenUrl = window.BASE_URL + urlString.substring(1);
+        } else if (urlString.startsWith('assets/')) {
+            rewrittenUrl = window.BASE_URL + urlString;
+        } else {
+            const originAssets = window.location.origin + '/assets/';
+            if (urlString.startsWith(originAssets)) {
+                rewrittenUrl = window.BASE_URL + 'assets/' + urlString.substring(originAssets.length);
+            }
+        }
 
-        return originalFetch(input.toLowerCase(), init);
+        let finalUrl = rewrittenUrl;
+        const lowerUrl = rewrittenUrl.toLowerCase();
+        if (lowerUrl.includes("index.data".toLowerCase())) finalUrl = indexdataurl;
+        else if (lowerUrl.includes("emotion.adf".toLowerCase())) finalUrl = EMOTIONadfurl;
+        else if (lowerUrl.includes("espant.adf".toLowerCase())) finalUrl = ESPANTadfurl;
+        else if (lowerUrl.includes("fever.adf".toLowerCase())) finalUrl = FEVERadfurl;
+        else if (lowerUrl.includes("flash.adf".toLowerCase())) finalUrl = FLASHadfurl;
+        else if (lowerUrl.includes("kchat.adf".toLowerCase())) finalUrl = KCHATadfurl;
+        else if (lowerUrl.includes("VCPR.adf".toLowerCase())) finalUrl = VCPRadfurl;
+        else if (lowerUrl.includes("VROCK.adf".toLowerCase())) finalUrl = VROCKadfurl;
+        else if (lowerUrl.includes("WAVE.adf".toLowerCase())) finalUrl = WAVEadfurl;
+        else if (lowerUrl.includes("WILD.adf".toLowerCase())) finalUrl = WILDadfurl;
+
+        if (input instanceof Request && finalUrl === urlString) {
+            return originalFetch(input, init);
+        }
+
+        return originalFetch(finalUrl.toLowerCase(), init);
     };
 
     // Similarly override XHR
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-        if (url.includes("https://cdn.dos.zone/vcsky/fetched/".toLowerCase())) url = url.replace("https://cdn.dos.zone/vcsky/fetched/", "")
-        if (url.toLowerCase().includes("index.data".toLowerCase())) url = indexdataurl;
-        else if (url.toLowerCase().includes("emotion.adf".toLowerCase())) url = EMOTIONadfurl;
-        else if (url.toLowerCase().includes("espant.adf".toLowerCase())) url = ESPANTadfurl;
-        else if (url.toLowerCase().includes("fever.adf".toLowerCase())) url = FEVERadfurl;
-        else if (url.toLowerCase().includes("flash.adf".toLowerCase())) url = FLASHadfurl;
-        else if (url.toLowerCase().includes("KCHAT.adf".toLowerCase())) url = KCHATadfurl;
-        else if (url.toLowerCase().includes("VCPR.adf".toLowerCase())) url = VCPRadfurl;
-        else if (url.toLowerCase().includes("VROCK.adf".toLowerCase())) url = VROCKadfurl;
-        else if (url.toLowerCase().includes("WAVE.adf".toLowerCase())) url = WAVEadfurl;
-        else if (url.toLowerCase().includes("WILD.adf".toLowerCase())) url = WILDadfurl;
-        return originalOpen.call(this, method, url.toLowerCase(), ...rest);
+        let urlString = String(url);
+        if (urlString.includes("https://cdn.dos.zone/vcsky/fetched/".toLowerCase())) {
+            urlString = urlString.replace("https://cdn.dos.zone/vcsky/fetched/", "");
+        }
+
+        if (urlString.startsWith('/assets/')) {
+            urlString = window.BASE_URL + urlString.substring(1);
+        } else if (urlString.startsWith('assets/')) {
+            urlString = window.BASE_URL + urlString;
+        } else {
+            const originAssets = window.location.origin + '/assets/';
+            if (urlString.startsWith(originAssets)) {
+                urlString = window.BASE_URL + 'assets/' + urlString.substring(originAssets.length);
+            }
+        }
+
+        const lowerUrl = urlString.toLowerCase();
+        let finalUrl = urlString;
+        if (lowerUrl.includes("index.data".toLowerCase())) finalUrl = indexdataurl;
+        else if (lowerUrl.includes("emotion.adf".toLowerCase())) finalUrl = EMOTIONadfurl;
+        else if (lowerUrl.includes("espant.adf".toLowerCase())) finalUrl = ESPANTadfurl;
+        else if (lowerUrl.includes("fever.adf".toLowerCase())) finalUrl = FEVERadfurl;
+        else if (lowerUrl.includes("flash.adf".toLowerCase())) finalUrl = FLASHadfurl;
+        else if (lowerUrl.includes("KCHAT.adf".toLowerCase())) finalUrl = KCHATadfurl;
+        else if (lowerUrl.includes("VCPR.adf".toLowerCase())) finalUrl = VCPRadfurl;
+        else if (lowerUrl.includes("VROCK.adf".toLowerCase())) finalUrl = VROCKadfurl;
+        else if (lowerUrl.includes("WAVE.adf".toLowerCase())) finalUrl = WAVEadfurl;
+        else if (lowerUrl.includes("WILD.adf".toLowerCase())) finalUrl = WILDadfurl;
+        
+        return originalOpen.call(this, method, finalUrl.toLowerCase(), ...rest);
     };
 
     // Load game scripts
